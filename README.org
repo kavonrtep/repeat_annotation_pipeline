@@ -1,0 +1,24 @@
+#+TITLE: RepeatExplorer based Assembly Annotation Pipeline
+
+* Tools
+** *Prepare Custom Repeat Library* 
+create library based on RE2 output
+
+** Annotate Repeats
+
+uses custom database to annotate repetitive sequences in the genome assembly. Class of repeats must be define in sequence id header either as:
+
+~>CLASSS__sequence_id~ (CLASSS is separated from sequence id by double underscore). This definition enable only one classification level.
+
+or as 
+
+~>sequence_id#classification_level1/classification_level2/...~ this enable to specify classification hierarchy
+
+Library could be prepared from RE2 output. Internally annotation is performed using RepeatMasker search. Output from RepeatMasker is parsed to remove duplicated and overlaping annotation, Conflicts in annotations are resolved using hierarchical cl;assification of repeats provided in custom database.
+
+* test data
+
+1/ ~test_assembly_1.fasta~ with ~test_db_1_satellites.fasta~ (include CLASS followed by double underscore - syntax 1)
+2/ ~test_assembly_2.fasta~ with ~test_db_2_RE_repeats.fasta~ (include full hierarchical classification)
+
+

@@ -1,0 +1,95 @@
+<tool id="annotate_contigs" name="Format Repeat Library" version="0.1.0" python_template_version="3.5">
+    <requirements>
+        <requirement type="package" version="2.60.0">bioconductor-biostrings</requirement>
+    </requirements>
+    <command detect_errors="exit_code"><![CDATA[
+        $__tool_directory__/annotate_contigs.R '$contigs' '$cluster_table' '$annotated_contigs'
+    ]]></command>
+    <inputs>
+        <param type="data" name="contigs" format="fasta" label="Contigs - Library of Repeats from TAREAN/RepeatExplorer pipeline" />
+        <param type="data" name="cluster_table" format="txt" label="CLUSTER_TABLE from RepeatExplorer pipeline" help="CLUSTER_TABLE which contain annotation of clusters from RepeatExplorer pipeline"/>
+    </inputs>
+    <outputs>
+        <data name="annotated_contigs" format="fasta" label="Annotated Repeat Library based on ${contigs.hid} and ${cluster_table.hid}" />
+    </outputs>
+    <help><![CDATA[
+    **What this tool does**
+
+Contigs from RepeatExplorer archive are annotated based on the classification of repeats from cluster_table.
+
+Preformated CLUSTER_TABLE can be extracted from RepeatExplorer archive and modified accordingly. By default, "Final_annotation" column is used to append annotation to contigs in repeat library (based on the cluster id).  If "Final_annotation" column is incomplete, "Automatic_annotation" column is used instead.
+
+Example of tab delimited CLUSTER_TABLE::
+
+
+     "Number_of_reads_in_clusters"	3886
+     "Number_of_clusters"	822
+     "Number_of_superclusters"	821
+     "Number_of_singlets"	6114
+     "Number_of_analyzed_reads"	10000
+     
+     "Cluster"	"Supercluster" "Size" "Size_adjusted"	"Automatic_annotation"	"TAREAN_annotation"	                     "Final_annotation"
+     1          	1             	260   260            "All/repeat/satellite"	  "Putative satellites (low confidence)" ""
+     2          	2             	157   157            "All/repeat/satellite"	  "Putative satellites (low confidence)" ""
+     3          	4             	100   100            "All"                  	"Other"                               	 ""
+     4          	5             	83   	83             "All"                  	"Other"                               	 ""
+     5          	3             	77   	77             "All"                  	"Other"                               	 ""
+     6          	3             	65   	65             "All"                  	"Other"                               	 ""
+     7          	6             	61   	61             "All"                  	"Other"                               	 ""
+     8          	7             	58   	58             "All"                  	"Other"                               	 ""
+     9          	8             	53   	53             "All"                  	"Other"                                  ""
+     10          	9             	53   	53             "All"                  	"Other"                               	 ""
+     11          	10             	51   	51             "All"                  	"Other"                               	 ""
+     12          	11             	45   	45             "All"                  	"Other"                               	 ""
+     13          	12             	44   	44             "All"                  	"Other"                               	 ""
+     14          	13             	44   	44             "All"                  	"Other"                               	 ""
+     15          	14             	39   	39             "All"                  	"Other"                               	 ""
+     16          	15             	37   	37             "All"                  	"Other"                               	 ""
+     17          	16             	30   	30             "All/repeat/satellite"	"Putative satellites (low confidence)"	 ""
+     18          	17             	28   	28             "All/repeat/satellite"	"Putative satellites (low confidence)"	 ""
+     19          	18             	26   	26             "All/repeat/satellite"   "Putative satellites (high confidence)"	 ""
+     20          	19             	23   	23             "All/repeat/../CRM"    	"Other"	                                 ""
+     21          	20             	21   	21             "All"                  	"Other"	                                 ""
+     22          	21             	21   	21             "All"                  	"Other"	                                 ""
+     23          	22             	21   	21             "All"                  	"Other"	                                 ""
+     24          	23             	21   	21             "All"                  	"Other"	                                 ""
+     25          	24             	20   	20             "All/repeat/../Ogre" "Other"                                   	""
+
+
+Only Cluster, Automatic_annotation/Final_annnotation are mandatory"
+
+Clusters with higher number than those in CLUSTER_TABLE are removed from Repeat library
+
+Contigs are provided in followinf format::
+
+
+     >CL25Contig1
+     AGATCAAGATGGCGCCGGAGGACATGGAGAAAACGACGTTTATCACTCCCTGGGGAACATTTTGCTACAAGGTAATGCCT
+     TTCGGTCTGAAGAACGCAGGGGCCACTTACCAACGAGCAATGGTAACTT
+     >CL1Contig4#All/repeat/satellite
+     ACCCGAAGGCCGGCTCAACCCGAAGTTGAGAAGAACATCTGACCTCGCCGTCAGGCATCTGTTAAACAAACAGGCATCGA
+     A
+     >CL1Contig5
+     TGAGAAGAACATCTGACCTCGCCGTCAGGCATCTGTTAAACAAACAGGCATCGAACCCGAAGGCCGGCTCAACCCGAAGT
+     TGATAAGAACATCTGACCTCGCCGTCAGGCATCTGTTAAACAAACAGGCATCGAACCCGAAGGCCGGCTCAACACGAAGT
+     TGAGAGGAACATCTGACCTCGCCGTCAGGCATCTGTTAAA
+
+
+Resulting repeat library will have following format::
+
+     >CL25Contig1#All/repeat/mobile_element/Class_I/LTR/Ty3_gypsy/non-chromovirus/OTA/Tat/Ogre
+     AGATCAAGATGGCGCCGGAGGACATGGAGAAAACGACGTTTATCACTCCCTGGGGAACATTTTGCTACAAGGTAATGCCT
+     TTCGGTCTGAAGAACGCAGGGGCCACTTACCAACGAGCAATGGTAACTT
+     >CL1Contig4#All/repeat/satellite
+     ACCCGAAGGCCGGCTCAACCCGAAGTTGAGAAGAACATCTGACCTCGCCGTCAGGCATCTGTTAAACAAACAGGCATCGA
+     A
+     >CL1Contig5#All/repeat/satellite
+     TGAGAAGAACATCTGACCTCGCCGTCAGGCATCTGTTAAACAAACAGGCATCGAACCCGAAGGCCGGCTCAACCCGAAGT
+     TGATAAGAACATCTGACCTCGCCGTCAGGCATCTGTTAAACAAACAGGCATCGAACCCGAAGGCCGGCTCAACACGAAGT
+     TGAGAGGAACATCTGACCTCGCCGTCAGGCATCTGTTAAA
+     
+
+
+
+    ]]></help>
+</tool>

@@ -1,0 +1,59 @@
+#!/usr/bin/env Rscript
+suppressPackageStartupMessages(library(rtracklayer))
+
+gff_cleanup = function(gff){
+  ## remove overlapin annotation track - assign new annot
+  gff_disjoin = disjoin(gff, with.revmap=TRUE)
+  ## append annotation:
+  gff_names = mclapply(as.list(gff_disjoin$revmap), FUN = function(x)gff$Name[x], mc.cores = 8)
+  gff_strands = mclapply(as.list(gff_disjoin$revmap), FUN = function(x)strand(gff[x]), mc.cores = 8)
+  new_annot = sapply(sapply(gff_names, unique), paste, collapse="|")
+  strand_attribute = sapply(sapply(gff_strands, unique), paste, collapse="|")
+  gff_disjoin$strands=strand_attribute
+  gff_disjoin$source="RM"
+  gff_disjoin$type="repeat"
+  gff_disjoin$score=NA
+  gff_disjoin$phase=NA
+  gff_disjoin$Name=new_annot
+  gff_disjoin$revmap=NULL
+  return(gff_disjoin)
+}
+infile = commandArgs(T)[1]
+outfile = commandArgs(T)[2]
+
+## infile = "./test_data/raw_rm.out"
+
+rm_out = read.table(infile, as.is=TRUE, sep="", skip = 2, fill=TRUE, header=FALSE)
+
+gff = GRanges(seqnames = rm_out$V5, ranges = IRanges(start = rm_out$V6, end=rm_out$V7))
+
+# repeat class after # symbol - syntax 1
+gff$Name=rm_out$V11
+
+## is repeat type is specifies by double underscore:
+## then rm_out$V11 is unspecified
+if (any(rm_out$V11 == "Unspecified")){
+  ## set Name from prefix
+  ## TODO
+  inc = rm_out$V11 == "Unspecified"
+  Name = gsub("__.+","",rm_out$V10)
+  # chanche Usnpsecified to new name
+  gff$Name[inc] = Name
+}
+
+
+## join neighbors with the same annotation, disregard strand!
+result <- unlist(reduce(split(gff, gff$Name)))
+result$Name <- names(result)
+
+## TODO
+## identify conflicting annotation, replace by LCA but keep origin list of classifications
+
+gff_out = sortSeqlevels(result)
+gff_out = sort(gff_out)
+gff_out$type = "repeat_region"
+gff_out$source = "RepeatMasker_parsed"
+gff_out$ID=paste0(gff_out$Name, "_", seq_along(gff_out$Name))
+export(gff_out,  format = "gff3", con=outfile)
+
+

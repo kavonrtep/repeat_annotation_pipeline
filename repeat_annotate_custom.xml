@@ -1,0 +1,36 @@
+<tool id="repeat_annotate" name="RepeatExplorer Based Assembly Annotation" version="0.1.0" python_template_version="3.5">
+    <requirements>
+        <requirement type="package">repeatmasker</requirement>
+        <requirement type="package">bioconductor-rtracklayer</requirement>
+    </requirements>
+    <command detect_errors="exit_code"><![CDATA[
+        RepeatMasker -dir \$(pwd) '$input' -pa 12 -lib '$repeat_library' -xsmall -nolow -no_is -e ncbi -s
+        &&
+        ls -l * >&2 &&
+        cp `basename $input`.out  $output2
+        &&
+        Rscript ${__tool_directory__}/clean_rm_output.R $output2 $output1
+
+        ]]></command>
+    <inputs>
+        <param type="data" name="input" format="fasta" label="Genome/ Assembly to annotate" />
+        <param type="data" name="repeat_library" format="fasta" label="RepeatExplorer based Library of Repetitive Sequences"
+               help="custom database of repetitive sequences should be provided in fasta format. Sequence header should specify repeat class:
+                     >sequence_id#classification_level1/classification_level2/..." />
+    </inputs>
+    <outputs>
+        <data name="output1" format="gff3"  label="Repeat Annotation on ${on_string}, cleaned gff"/>
+        <data name="output2" format="tabular" label="RepeatMasker on ${on_string}, original output" />
+    </outputs>
+    <help><![CDATA[
+        This tools uses RepeatMasker to annotate repetitive sequences in the genome assemblie using custom library of repeats created from RepeatExplorer output.
+        Library of repeats created from RepeatExplorer ouput are contigs and TAREAN consensus sequences in fasta format where sequence header containg information about classification of repeats as **>sequence_id#classification_level1/classification_level2/...**
+
+        Classification in RepeatExplorer based library follows predetermined classification levels. User can however specify additional classification levels or ciompletelly custom classifications. Conflicts in annotations are resolved based on classification hierarchy.
+        
+
+
+ 
+    ]]></help>
+</tool>
+c
