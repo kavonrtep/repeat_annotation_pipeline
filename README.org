@@ -1,24 +1,34 @@
 #+TITLE: RepeatExplorer based Assembly Annotation Pipeline
 
-* Tools
-** *Prepare Custom Repeat Library* 
-create library based on RE2 output
+* Tools in repository
+**  Extract Repeat Library from RepeatExplorer Archive
+(=extract_re_contigs.xml=)
 
-** Annotate Repeats
+This toll  will extract library of repeats  based on RepeatExplorer2 analysis. Library is available as fasta file.
 
-uses custom database to annotate repetitive sequences in the genome assembly. Class of repeats must be define in sequence id header either as:
+** Format repeat library
+(=format_repeat_library.xml=)
 
-~>CLASSS__sequence_id~ (CLASSS is separated from sequence id by double underscore). This definition enable only one classification level.
-
-or as 
+This tool append classification of repeats to library of repeats. Type of repeat is then part of sequence name in format:
 
 ~>sequence_id#classification_level1/classification_level2/...~ this enable to specify classification hierarchy
+Classification of sequneces in library is provided using  =CLUSTER_TABLE.csv= (part of RE2 output)
 
-Library could be prepared from RE2 output. Internally annotation is performed using RepeatMasker search. Output from RepeatMasker is parsed to remove duplicated and overlaping annotation, Conflicts in annotations are resolved using hierarchical cl;assification of repeats provided in custom database.
+This file can then be used for annotation of repeat in your assembly:
+** Repeat Annotation
+(=repeat_annotate_custom.xml=)
+
+ Internally annotation is performed using RepeatMasker search. Output from RepeatMasker is parsed to remove duplicated and overlaping annotations, Conflicts in annotations are resolved using hierarchical classification of repeats provided in custom database
 
 * test data
 
-1/ ~test_assembly_1.fasta~ with ~test_db_1_satellites.fasta~ (include CLASS followed by double underscore - syntax 1)
-2/ ~test_assembly_2.fasta~ with ~test_db_2_RE_repeats.fasta~ (include full hierarchical classification)
+- ~test_assembly_1.fasta~ with ~test_db_1_satellites.fasta~ (include CLASS followed by double underscore - syntax 1)
+- ~test_assembly_2.fasta~ with ~test_db_2_RE_repeats.fasta~ (include full hierarchical classification)
 
 
+
+#+begin_comment
+create tarball for toolshed:
+tar -czvf ../repeat_annotation_pipeline.tar.gz --exclude test_data --exclude .git  .
+
+#+end_comment>

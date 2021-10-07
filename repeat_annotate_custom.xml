@@ -4,7 +4,7 @@
         <requirement type="package">bioconductor-rtracklayer</requirement>
     </requirements>
     <command detect_errors="exit_code"><![CDATA[
-        RepeatMasker -dir \$(pwd) '$input' -pa 12 -lib '$repeat_library' -xsmall -nolow -no_is -e ncbi -s
+        RepeatMasker -dir \$(pwd) '$input' -pa 32 -lib '$repeat_library' -xsmall -nolow -no_is -e ncbi -s
         &&
         ls -l * >&2 &&
         cp `basename $input`.out  $output2
@@ -27,10 +27,6 @@
         Library of repeats created from RepeatExplorer ouput are contigs and TAREAN consensus sequences in fasta format where sequence header containg information about classification of repeats as **>sequence_id#classification_level1/classification_level2/...**
 
         Classification in RepeatExplorer based library follows predetermined classification levels. User can however specify additional classification levels or ciompletelly custom classifications. Conflicts in annotations are resolved based on classification hierarchy.
-        
-
-
- 
     ]]></help>
 </tool>
-c
+
