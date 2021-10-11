@@ -43,7 +43,8 @@ if (any(rm_out$V11 == "Unspecified")){
 
 
 ## join neighbors with the same annotation, disregard strand!
-result <- unlist(reduce(split(gff, gff$Name)))
+result <- gff_cleanup(unlist(reduce(split(gff, gff$Name))))
+
 result$Name <- names(result)
 
 ## TODO
