@@ -18,8 +18,9 @@ This file can then be used for annotation of repeat in your assembly:
 ** Repeat Annotation
 (=repeat_annotate_custom.xml=)
 
- Internally annotation is performed using RepeatMasker search. Output from RepeatMasker is parsed to remove duplicated and overlaping annotations, Conflicts in annotations are resolved using hierarchical classification of repeats provided in custom database
-
+ Internally annotation is performed using RepeatMasker search. Output from RepeatMasker is parsed to remove duplicated and overlaping annotations, Conflicts in annotations are resolved using hierarchical classification of repeats provided in custom database. 
+** TODO Summarize Annotation
+This tool will create summary table from GFF annotation.
 * test data
 
 - ~test_assembly_1.fasta~ with ~test_db_1_satellites.fasta~ (include CLASS followed by double underscore - syntax 1)
