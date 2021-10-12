@@ -4,7 +4,7 @@
 **  Extract Repeat Library from RepeatExplorer Archive
 (=extract_re_contigs.xml=)
 
-This toll  will extract library of repeats  based on RepeatExplorer2 analysis. Library is available as fasta file.
+This toll  will extract library of repeats  based on RepeatExplorer2 analysis. Library is available as fasta file. Tool also filter out all  the contig parts which has read depth and length below threshold. Parts of contigs with read depth below threshold are hardmasker. Contigs with full hardmasking are removed completelly
 
 ** Format repeat library
 (=format_repeat_library.xml=)
