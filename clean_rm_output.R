@@ -8,16 +8,43 @@ gff_cleanup = function(gff){
   gff_names = mclapply(as.list(gff_disjoin$revmap), FUN = function(x)gff$Name[x], mc.cores = 8)
   gff_strands = mclapply(as.list(gff_disjoin$revmap), FUN = function(x)strand(gff[x]), mc.cores = 8)
   new_annot = sapply(sapply(gff_names, unique), paste, collapse="|")
+  new_annot_uniq = unique(new_annot)
+  lca_annot = sapply(strsplit(new_annot_uniq, "|", fixed = TRUE), resolve_name)
+  names(lca_annot) = new_annot_uniq
+  new_annot_lca = lca_annot[new_annot] 
+  #new_annot_lca = sapply(sapply(gff_names, unique), resolve_name)
   strand_attribute = sapply(sapply(gff_strands, unique), paste, collapse="|")
   gff_disjoin$strands=strand_attribute
   gff_disjoin$source="RM"
   gff_disjoin$type="repeat"
   gff_disjoin$score=NA
   gff_disjoin$phase=NA
-  gff_disjoin$Name=new_annot
+  gff_disjoin$Name=new_annot_lca
+  gff_disjoin$Original_names=new_annot
   gff_disjoin$revmap=NULL
   return(gff_disjoin)
 }
+
+resolve_name=function(x){
+  if (length(x)==1){
+    # no conflict
+    return(x)
+  } else{
+    y = sapply(x, strsplit,  split="/", fixed = TRUE)
+    ny = table(unlist(sapply(y, function(x)paste(seq_along(x),x))))
+    if (max(ny)<length(x)){
+      return("Unknown")
+    }else{
+      k = which(ny==length(x))
+      r = max(as.numeric((gsub(" .+","",names(k)))))
+      out = paste(y[[1]][1:r], collapse="/")
+      return(out)
+    }
+  }
+}
+
+
+
 infile = commandArgs(T)[1]
 outfile = commandArgs(T)[2]
 
@@ -43,14 +70,16 @@ if (any(rm_out$V11 == "Unspecified")){
 
 
 ## join neighbors with the same annotation, disregard strand!
-result <- gff_cleanup(unlist(reduce(split(gff, gff$Name))))
+result <- unlist(reduce(split(gff, gff$Name)))
 
 result$Name <- names(result)
+
+result_clean = gff_cleanup(result)
 
 ## TODO
 ## identify conflicting annotation, replace by LCA but keep origin list of classifications
 
-gff_out = sortSeqlevels(result)
+gff_out = sortSeqlevels(result_clean)
 gff_out = sort(gff_out)
 gff_out$type = "repeat_region"
 gff_out$source = "RepeatMasker_parsed"
