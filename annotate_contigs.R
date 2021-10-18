@@ -33,7 +33,9 @@ annotation_table=read.table(commandArgs(T)[2], sep="\t", header=TRUE, skip = hl 
 colnames(annotation_table) = tolower(colnames(annotation_table))
 
 contigs = readDNAStringSet(commandArgs(T)[1])
-if("final_annotation" %in% colnames(annotation) & all(!is.na(annotation_table$final_annotation))){
+
+
+if("final_annotation" %in% colnames(annotation_table) & all(!is.na(annotation_table$final_annotation))){
   annot_dict = annotation_table$final_annotation
   message("using final annotation column")
 }else{
@@ -44,7 +46,7 @@ if("final_annotation" %in% colnames(annotation) & all(!is.na(annotation_table$fi
 
 
 names(annot_dict) = paste0("CL",annotation_table$cluster)
-print(annot_dict)
+#print(annot_dict)
 
 contigs_ok = clean_contigs(contigs)
 contig_name = gsub("Contig.+","",names(contigs_ok))

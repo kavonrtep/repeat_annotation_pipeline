@@ -154,14 +154,18 @@ def read_tarean_fasta(fobj):
 def extract_tarean_contigs_from_re_archive(archive):
     with zipfile.ZipFile(archive, 'r') as zip_object:
         flist = zip_object.infolist()
+        seqs_all = []
+        ids_all = []
         for fn in flist:
             if re.match("seqclust.+dir_CL[0-9]+[/]tarean_contigs.fasta", fn.filename):
                 print(fn.filename)
                 with zip_object.open(fn.filename) as fobj:
                     ids, seqs = read_tarean_fasta(fobj)
-    # wrap sequences
-    seqs = ["\n".join(textwrap.wrap(s + s, 80)) for s in seqs]
-    return ids, seqs
+                    # wrap sequences
+                    seqs = ["\n".join(textwrap.wrap(s + s, 80)) for s in seqs]
+                    seqs_all += seqs
+                    ids_all += ids
+    return ids_all, seqs_all
 
 
 def extract_contigs_from_re_directory(dir, aln_output):
