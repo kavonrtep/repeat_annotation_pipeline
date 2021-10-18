@@ -1,0 +1,24 @@
+<tool id="summarize_gff_by_attribute" name="Create summary of gff attribute" version="0.1.0" python_template_version="3.5">
+    <requirements>
+        <requirement type="package">bioconductor-rtracklayer</requirement>
+    </requirements>
+    <command detect_errors="exit_code"><![CDATA[
+        $__tool_directory__/summarize_gff_by_attribute.R '$input_gff' $attribute_name '$output_table'
+    ]]></command>
+    <inputs>
+      <param type="data" name="input_gff" format="gff" label="Input GFF">
+        <sanitizer invalid_char="">
+          <valid initial="string.ascii_letters,string.digits">
+            <add value="_" />
+          </valid>
+        </sanitizer>
+      </param>
+        <param type="text" name="attribute_name" label="Name of attribute to summarize"/>
+    </inputs>
+    <outputs>
+        <data name="output_table" format="tsv" />
+    </outputs>
+    <help><![CDATA[
+        TODO: Fill in help.
+    ]]></help>
+</tool>
