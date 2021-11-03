@@ -8,6 +8,7 @@ import re
 import zipfile
 import tempfile
 import textwrap
+import os
 
 def parse_args():
     '''Argument parsin'''
@@ -143,13 +144,31 @@ def read_tarean_fasta(fobj):
     ids = []
     s = []
     for i in fobj:
-        ii = i.decode('utf-8')
+        if isinstance(i, str):
+            ii = i
+        else:
+            ii = i.decode('utf-8')
         if ii[0] == ">":
             ids.append(ii)
             s.append("")
         else:
             s[-1] = s[-1] + ii.strip()
     return ids, s
+
+
+def extract_contigs_from_re_directory(re_dir, aln_output):
+    with open(aln_output, 'w') as fout:
+        for subdir, dirs, files in os.walk(re_dir):
+            for fn in files:
+                fn_full = subdir + os.sep + fn
+                if re.match('^.+seqclust.+[.]aln$', fn_full):
+                    print(fn_full)
+                    with open(fn_full) as aln:
+                        for l in aln:
+                            fout.write(l)
+    return aln_output
+
+
 
 def extract_tarean_contigs_from_re_archive(archive):
     with zipfile.ZipFile(archive, 'r') as zip_object:
@@ -168,10 +187,21 @@ def extract_tarean_contigs_from_re_archive(archive):
     return ids_all, seqs_all
 
 
-def extract_contigs_from_re_directory(dir, aln_output):
-    # TODO
-    pass
-
+def extract_tarean_contigs_from_re_directory(re_dir):
+    seqs_all = []
+    ids_all = []
+    for subdir, dirs, files in os.walk(re_dir):
+        for fn in files:
+            fn_full = subdir + os.sep + fn
+            if re.match("^.+seqclust.+dir_CL[0-9]+[/]tarean_contigs.fasta", fn_full):
+                print (fn_full)
+                with open(fn_full) as fobj:
+                    ids, seqs = read_tarean_fasta(fobj)
+                    # wrap sequences
+                    seqs = ["\n".join(textwrap.wrap(s + s, 80)) for s in seqs]
+                    seqs_all += seqs
+                    ids_all += ids
+    return ids_all, seqs_all
 
 def filter_contigs(consensus, coverage, min_coverage=5):
     x = "".join([
@@ -184,11 +214,19 @@ def filter_contigs(consensus, coverage, min_coverage=5):
 
 def main():
     args = parse_args()
-    # extract aln from archive
-    ids, seqs = extract_tarean_contigs_from_re_archive(args.re_file)
-    aln_file = extract_contigs_from_re_archive(
-        args.re_file,
-        tempfile.NamedTemporaryFile().name)
+    if os.path.isdir(args.re_file):
+        # extract from directory
+        ids, seqs = extract_tarean_contigs_from_re_directory(args.re_file)
+        aln_file = extract_contigs_from_re_directory(
+            args.re_file,
+            tempfile.NamedTemporaryFile().name)
+    else:
+        # extract aln from archive
+        ids, seqs = extract_tarean_contigs_from_re_archive(args.re_file)
+        aln_file = extract_contigs_from_re_archive(
+            args.re_file,
+            tempfile.NamedTemporaryFile().name)
+
     with open(aln_file, 'r') as f1, open(args.fasta, 'w') as ffasta:
         while True:
             contig_name, seq_start = get_header(f1)
