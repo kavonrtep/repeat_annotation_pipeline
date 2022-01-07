@@ -1,0 +1,6 @@
+python>=3.8
+r-base
+bioconductor-biostrings
+bioconductor-rtracklayer
+repeatmasker
+
