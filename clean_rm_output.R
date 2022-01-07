@@ -1,5 +1,7 @@
 #!/usr/bin/env Rscript
 suppressPackageStartupMessages(library(rtracklayer))
+suppressPackageStartupMessages(library(parallel))
+
 
 gff_cleanup = function(gff){
   ## remove overlapin annotation track - assign new annot
@@ -50,7 +52,7 @@ outfile = commandArgs(T)[2]
 
 ## infile = "./test_data/raw_rm.out"
 
-rm_out = read.table(infile, as.is=TRUE, sep="", skip = 2, fill=TRUE, header=FALSE)
+rm_out = read.table(infile, as.is=TRUE, sep="", skip = 2, fill=TRUE, header=FALSE, col.names=paste0("V",1:16))
 
 gff = GRanges(seqnames = rm_out$V5, ranges = IRanges(start = rm_out$V6, end=rm_out$V7))
 
