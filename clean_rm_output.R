@@ -16,13 +16,13 @@ gff_cleanup = function(gff){
   new_annot_lca = lca_annot[new_annot] 
   #new_annot_lca = sapply(sapply(gff_names, unique), resolve_name)
   strand_attribute = sapply(sapply(gff_strands, unique), paste, collapse="|")
-  gff_disjoin$strands=strand_attribute
   gff_disjoin$source="RM"
   gff_disjoin$type="repeat"
   gff_disjoin$score=NA
   gff_disjoin$phase=NA
   gff_disjoin$Name=new_annot_lca
   gff_disjoin$Original_names=new_annot
+  gff_disjoin$strands=strand_attribute
   gff_disjoin$revmap=NULL
   return(gff_disjoin)
 }
@@ -45,10 +45,18 @@ resolve_name=function(x){
   }
 }
 
+convert_names <- function(n, old_sep = "|" , new_sep = "\""){
+  # remove all characters which are new_sep with -
+  n_new = gsub(old_sep, new_sep,
+               gsub(new_sep,"-", n, fixed = TRUE),
+               fixed = TRUE)
+  return(n_new)
+}
 
 
 infile = commandArgs(T)[1]
 outfile = commandArgs(T)[2]
+
 
 ## infile = "./test_data/raw_rm.out"
 
@@ -57,7 +65,15 @@ rm_out = read.table(infile, as.is=TRUE, sep="", skip = 2, fill=TRUE, header=FALS
 gff = GRanges(seqnames = rm_out$V5, ranges = IRanges(start = rm_out$V6, end=rm_out$V7))
 
 # repeat class after # symbol - syntax 1
-gff$Name=rm_out$V11
+# detect separator
+# if "|" is present replace "|" -> "/" and "/" -> "-"
+if (any(grepl("|", rm_out$V11, fixed = TRUE))){
+  gff$Name <- convert_names(rm_out$V11, old_sep = "|", new_sep = "/")
+  message('replacing classification separator character "|" with "/"')
+  print(gff)
+}else{
+  gff$Name <- rm_out$V11
+}
 
 ## is repeat type is specifies by double underscore:
 ## then rm_out$V11 is unspecified
