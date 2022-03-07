@@ -1,10 +1,15 @@
-<tool id="repeat_annotate" name="RepeatExplorer Based Assembly Annotation" version="0.1.2" python_template_version="3.5">
+<tool id="repeat_annotate" name="Library Based Assembly Annotation" version="0.1.2" python_template_version="3.5">
     <requirements>
         <requirement type="package">repeatmasker</requirement>
         <requirement type="package">bioconductor-rtracklayer</requirement>
     </requirements>
     <command detect_errors="exit_code"><![CDATA[
-        RepeatMasker -dir \$(pwd) '$input' -pa 32 -lib '$repeat_library' -xsmall -nolow -no_is -e ncbi -s
+
+        #if $sensitivity.value == 'default':
+        RepeatMasker -dir \$(pwd) '$input' -pa 32 -lib '$repeat_library' -xsmall -nolow -no_is -e ncbi
+        #else:
+        RepeatMasker -dir \$(pwd) '$input' -pa 32 -lib '$repeat_library' -xsmall -nolow -no_is -e ncbi $sensitivity
+        #end if
         &&
         ls -l * >&2 &&
         cp `basename $input`.out  $output2
@@ -17,16 +22,23 @@
         <param type="data" name="repeat_library" format="fasta" label="RepeatExplorer based Library of Repetitive Sequences"
                help="custom database of repetitive sequences should be provided in fasta format. Sequence header should specify repeat class:
                      >sequence_id#classification_level1/classification_level2/..." />
+        <param type="select" label="sensitivity" name="sensitivity" >
+            <option value="default" selected="true" >Default sensitivity </option>
+            <option value="-s">Slow search, more sensitive </option>
+            <option value="-q">Quick search, more sensitive </option>
+        </param>
     </inputs>
     <outputs>
         <data name="output1" format="gff3"  label="Repeat Annotation on ${on_string}, cleaned gff"/>
         <data name="output2" format="tabular" label="Raw output from RepeatMasker on ${on_string}" />
     </outputs>
     <help><![CDATA[
-        This tools uses RepeatMasker to annotate repetitive sequences in the genome assemblie using custom library of repeats created from RepeatExplorer output.
-        Library of repeats can be created from RepeatExplorer ouputt from contigs and TAREAN consensus sequences. Fasta formated library of repeats must contain header containg information about classification of repeats as **>sequence_id#classification_level1/classification_level2/...**
+        This tools uses RepeatMasker to annotate repetitive sequences in the genome assemblies using custom library of repeats created either from RepeatExplorer output or from DANTE_LTR transposable element library.
+        Library of repeats can be created from RepeatExplorer output from contigs and TAREAN consensus sequences.
+        Fasta formatted library of repeats must contain header containing  information about classification of repeats as **>sequence_id#classification_level1/classification_level2/...**
 
-        Classification in RepeatExplorer based library follows predetermined classification levels. User can however specify additional classification levels or completelly custom classifications. Conflicts in annotations are resolved based on classification hierarchy.
+        Classification in RepeatExplorer based library follows predetermined classification levels. User can however specify additional classification levels or custom classifications.
+        Conflicts in annotations are resolved based on classification hierarchy.
     ]]></help>
 </tool>
 

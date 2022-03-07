@@ -33,3 +33,7 @@ create tarball for toolshed:
 tar -czvf ../repeat_annotation_pipeline.tar.gz --exclude test_data \
 --exclude .git  --exclude tmp  --exclude hg_repository --exclude .idea --exclude .gitignore .
 #+end_comment
+
+
+
+- TODO RM take only short name of sequences - validate name / adjust
