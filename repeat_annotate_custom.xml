@@ -1,4 +1,4 @@
-<tool id="repeat_annotate" name="Library Based Assembly Annotation" version="0.1.2" python_template_version="3.5">
+<tool id="repeat_annotate" name="Library Based Assembly Annotation" version="0.1.3" python_template_version="3.5">
     <requirements>
         <requirement type="package">repeatmasker</requirement>
         <requirement type="package">bioconductor-rtracklayer</requirement>

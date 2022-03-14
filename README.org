@@ -29,7 +29,7 @@ This tool will create summary table from GFF annotation.
 
 
 #+begin_comment
-create tarball for toolshed:
+# create tarball for toolshed:
 tar -czvf ../repeat_annotation_pipeline.tar.gz --exclude test_data \
 --exclude .git  --exclude tmp  --exclude hg_repository --exclude .idea --exclude .gitignore .
 #+end_comment
