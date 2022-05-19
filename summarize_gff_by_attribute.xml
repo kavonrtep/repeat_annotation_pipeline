@@ -1,4 +1,4 @@
-<tool id="summarize_gff_by_attribute" name="Create summary of gff attribute" version="0.1.0" python_template_version="3.5">
+<tool id="summarize_gff_by_attribute" name="Create summary on GFF3 attribute" version="0.1.0" python_template_version="3.5">
     <requirements>
         <requirement type="package">bioconductor-rtracklayer</requirement>
     </requirements>

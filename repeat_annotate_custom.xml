@@ -18,18 +18,18 @@
 
         ]]></command>
     <inputs>
-        <param type="data" name="input" format="fasta" label="Genome/ Assembly to annotate" />
+        <param type="data" name="input" format="fasta" label="Genome Assembly to annotate" />
         <param type="data" name="repeat_library" format="fasta" label="RepeatExplorer based Library of Repetitive Sequences"
                help="custom database of repetitive sequences should be provided in fasta format. Sequence header should specify repeat class:
                      >sequence_id#classification_level1/classification_level2/..." />
         <param type="select" label="sensitivity" name="sensitivity" >
             <option value="default" selected="true" >Default sensitivity </option>
             <option value="-s">Slow search, more sensitive </option>
-            <option value="-q">Quick search, more sensitive </option>
+            <option value="-q">Quick search, less sensitive </option>
         </param>
     </inputs>
     <outputs>
-        <data name="output1" format="gff3"  label="Repeat Annotation on ${on_string}, cleaned gff"/>
+        <data name="output1" format="gff3"  label="Repeat Annotation (GFF3) on ${on_string}"/>
         <data name="output2" format="tabular" label="Raw output from RepeatMasker on ${on_string}" />
     </outputs>
     <help><![CDATA[
