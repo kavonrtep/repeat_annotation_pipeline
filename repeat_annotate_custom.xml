@@ -18,7 +18,7 @@
 
         ]]></command>
     <inputs>
-        <param type="data" name="input" format="fasta" label="Genome Assembly to annotate" />
+        <param type="data" name="input" format="fasta" label="Genome assembly to annotate" />
         <param type="data" name="repeat_library" format="fasta" label="RepeatExplorer based Library of Repetitive Sequences"
                help="custom database of repetitive sequences should be provided in fasta format. Sequence header should specify repeat class:
                      >sequence_id#classification_level1/classification_level2/..." />
