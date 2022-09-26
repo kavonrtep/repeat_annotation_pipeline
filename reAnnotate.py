@@ -6,10 +6,15 @@ import argparse
 import itertools
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
 from collections import defaultdict
+
+#  check version of python, must be at least 3.7
+if sys.version_info < (3, 10):
+    sys.exit("Python 3.7 or a more recent version is required.")
 
 
 def overlap(a, b):
@@ -261,15 +266,63 @@ def run_blastn(
     db_formated = tempfile.NamedTemporaryFile().name
     cmd = "makeblastdb -in {0} -dbtype nucl -out {1}".format(db, db_formated)
     subprocess.check_call(cmd, shell=True)
-    cmd = ("blastn -task rmblastn -query {0} -db {1} -out {2} -evalue {3} "
-           "-max_target_seqs {4} "
-           "-gapopen {5} -gapextend {6} -word_size {7} -num_threads "
-           "{8} -outfmt '{9}' -reward {10} -penalty {11} -dust no").format(
-        query, db_formated, blastfile, evalue, max_target_seqs, gapopen, gapextend,
-        word_size, num_threads, outfmt, reward, penalty
-        )
-    subprocess.check_call(cmd, shell=True)
+    # if query is smaller than 1GB, run blast on single file
+    size = os.path.getsize(query)
+    print("query size: {} bytes".format(size))
+    max_size = 5e8
+    if size < max_size:
+        cmd = ("blastn -task rmblastn -query {0} -db {1} -out {2} -evalue {3} "
+               "-max_target_seqs {4} "
+               "-gapopen {5} -gapextend {6} -word_size {7} -num_threads "
+               "{8} -outfmt '{9}' -reward {10} -penalty {11} -dust no").format(
+            query, db_formated, blastfile, evalue, max_target_seqs, gapopen, gapextend,
+            word_size, num_threads, outfmt, reward, penalty
+            )
+        subprocess.check_call(cmd, shell=True)
+    # if query is larger than 1GB, split query in chunks and run blast on each chunk
+    else:
+        N = int(size // max_size + 1)
+        print("splitting query in {} chunks".format(N))
+        # create temporary directory
+        tmp_dir = tempfile.mkdtemp()
+        f_parts = [open(os.path.join(tmp_dir, "part_{}".format(i)), "w") for i in range(N)]
+        # split query to max N chuncks, split on fasta header
+        with open(query, "r") as f:
+            f_parts_cycle = itertools.cycle(f_parts)
+            for line in f:
+                if line.startswith(">"):
+                    out = next(f_parts_cycle)
+                    out.write(line)
+                else:
+                    out.write(line)
 
+        for f in f_parts:
+            f.close()
+        # run blast on each chunk
+        for i in range(N):
+            cmd = ("blastn -task rmblastn -query {0} -db {1} -out {2} -evalue {3} "
+                   "-max_target_seqs {4} "
+                   "-gapopen {5} -gapextend {6} -word_size {7} -num_threads "
+                   "{8} -outfmt '{9}' -reward {10} -penalty {11} -dust no").format(
+                os.path.join(tmp_dir, "part_{}".format(i)),
+                db_formated, blastfile + ".part_{}".format(i), evalue,
+                max_target_seqs, gapopen, gapextend, word_size, num_threads, outfmt,
+                reward, penalty
+                )
+            print("running blast on chunk {}".format(i))
+            subprocess.check_call(cmd, shell=True)
+        # merge blast results
+        with open(blastfile, 'w') as outfile:
+            for i in range(N):
+                fp = blastfile + ".part_{}".format(i)
+                print(fp)
+                with open(fp) as infile:
+                    for line in infile:
+                        outfile.write(line)
+        # remove temporary directory
+        print(blastfile)
+        shutil.rmtree(tmp_dir)
+    # remove temporary blast database
     os.unlink(db_formated + ".nhr")
     os.unlink(db_formated + ".nin")
     os.unlink(db_formated + ".nsq")
