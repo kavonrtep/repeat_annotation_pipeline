@@ -14,7 +14,122 @@ from collections import defaultdict
 
 #  check version of python, must be at least 3.7
 if sys.version_info < (3, 10):
-    sys.exit("Python 3.7 or a more recent version is required.")
+    sys.exit("Python 3.10 or a more recent version is required.")
+
+def make_temp_files(number_of_files):
+    """
+    Make named temporary files, file will not be deleted upon exit!
+    :param number_of_files:
+    :return:
+    filepaths
+    """
+    temp_files = []
+    for i in range(number_of_files):
+        temp_files.append(tempfile.NamedTemporaryFile(delete=False).name)
+        os.remove(temp_files[-1])
+    return temp_files
+
+
+def split_fasta_to_chunks(fasta_file, chunk_size=100000000, overlap=100000):
+    """
+    Split fasta file to chunks, sequences longe than chuck size are split to overlaping
+    peaces. If sequences are shorter, chunck with multiple sequences are created.
+    :param fasta_file:
+
+    :param fasta_file:
+    :param chunk_size:
+    :param overlap:
+    :return:
+    fasta_file_split
+    matching_table (list of lists [header,chunk_number, start, end, new_header])
+    """
+    min_chunk_size = chunk_size * 2
+    fasta_sizes_dict = read_fasta_sequence_size(fasta_file)
+    # calculate size of items in fasta_dist dictionary
+    fasta_size = sum(fasta_sizes_dict.values())
+
+    # calculates ranges for splitting of fasta files and store them in list
+    matching_table = []
+    fasta_file_split = tempfile.NamedTemporaryFile(delete=False).name
+    for header, size in fasta_sizes_dict.items():
+        print(header, size, min_chunk_size)
+
+        if size > min_chunk_size:
+            number_of_chunks = int(size / chunk_size)
+            adjusted_chunk_size = int(size / number_of_chunks)
+            for i in range(number_of_chunks):
+                start = i * adjusted_chunk_size
+                end = ((i + 1) *
+                       adjusted_chunk_size
+                       + overlap) if i + 1 < number_of_chunks else size
+                new_header = header + '_' + str(i)
+                matching_table.append([header, i, start, end, new_header])
+        else:
+            new_header = header + '_0'
+            matching_table.append([header, 0, 0, size, new_header])
+    # read sequences from fasta files and split them to chunks according to matching table
+    # open output and input files, use with statement to close files
+    number_of_temp_files = len(matching_table)
+    fasta_dict = read_single_fasta_to_dictionary(open(fasta_file, 'r'))
+    with open(fasta_file_split, 'w') as fh_out:
+        for header in fasta_dict:
+            matching_table_part = [x for x in matching_table if x[0] == header]
+            for header2, i, start, end, new_header in matching_table_part:
+                fh_out.write('>' + new_header + '\n')
+                fh_out.write(fasta_dict[header][start:end] + '\n')
+    temp_files_fasta = make_temp_files(number_of_temp_files)
+    file_handles = [open(temp_file, 'w') for temp_file in temp_files_fasta]
+    # make dictionary seq_id_sorted as keys and values as file handles
+    fasta_seq_size = read_fasta_sequence_size(fasta_file_split)
+    seq_id_size_sorted = [i[0] for i in sorted(
+        fasta_seq_size.items(), key=lambda x: int(x[1]), reverse=True
+        )]
+    seq_id_file_handle_dict = dict(zip(seq_id_size_sorted, itertools.cycle(file_handles)))
+
+    # write sequences to temporary files
+    with open(fasta_file_split, 'r') as f:
+        for line in f:
+            if line[0] == '>':
+                header = line.strip().split(' ')[0][1:]
+                seq_id_file_handle_dict[header].write(line)
+            else:
+                seq_id_file_handle_dict[header].write(line)
+    os.remove(fasta_file_split)
+    # close file handles
+    for file_handle in file_handles:
+        file_handle.close()
+    return temp_files_fasta, matching_table
+
+
+def read_fasta_sequence_size(fasta_file):
+    """Read size of sequence into dictionary"""
+    fasta_dict = {}
+    with open(fasta_file, 'r') as f:
+        for line in f:
+            if line[0] == '>':
+                header = line.strip().split(' ')[0][1:]  # remove part of name after space
+                fasta_dict[header] = 0
+            else:
+                fasta_dict[header] += len(line.strip())
+    return fasta_dict
+
+
+def read_single_fasta_to_dictionary(fh):
+    """
+    Read fasta file into dictionary
+    :param fh:
+    :return:
+    fasta_dict
+    """
+    fasta_dict = {}
+    for line in fh:
+        if line[0] == '>':
+            header = line.strip().split(' ')[0][1:]  # remove part of name after space
+            fasta_dict[header] = []
+        else:
+            fasta_dict[header] += [line.strip()]
+    fasta_dict = {k: ''.join(v) for k, v in fasta_dict.items()}
+    return fasta_dict
 
 
 def overlap(a, b):
@@ -269,7 +384,8 @@ def run_blastn(
     # if query is smaller than 1GB, run blast on single file
     size = os.path.getsize(query)
     print("query size: {} bytes".format(size))
-    max_size = 5e8
+    max_size = 3e6
+    overlap = 100000
     if size < max_size:
         cmd = ("blastn -task rmblastn -query {0} -db {1} -out {2} -evalue {3} "
                "-max_target_seqs {4} "
@@ -281,52 +397,53 @@ def run_blastn(
         subprocess.check_call(cmd, shell=True)
     # if query is larger than 1GB, split query in chunks and run blast on each chunk
     else:
-        N = int(size // max_size + 1)
-        print("splitting query in {} chunks".format(N))
-        # create temporary directory
-        tmp_dir = tempfile.mkdtemp()
-        f_parts = [open(os.path.join(tmp_dir, "part_{}".format(i)), "w") for i in range(N)]
-        # split query to max N chuncks, split on fasta header
-        with open(query, "r") as f:
-            f_parts_cycle = itertools.cycle(f_parts)
-            for line in f:
-                if line.startswith(">"):
-                    out = next(f_parts_cycle)
-                    out.write(line)
-                else:
-                    out.write(line)
-
-        for f in f_parts:
-            f.close()
-        # run blast on each chunk
-        for i in range(N):
+        print(f"query is larger than {max_size}, splitting query in chunks")
+        query_parts, matching_table = split_fasta_to_chunks(query, max_size, overlap)
+        print(query_parts)
+        for i, part in enumerate(query_parts):
+            print(f"running blast on chunk {i}")
+            print(part)
             cmd = ("blastn -task rmblastn -query {0} -db {1} -out {2} -evalue {3} "
                    "-max_target_seqs {4} "
                    "-gapopen {5} -gapextend {6} -word_size {7} -num_threads "
                    "{8} -outfmt '{9}' -reward {10} -penalty {11} -dust no").format(
-                os.path.join(tmp_dir, "part_{}".format(i)),
-                db_formated, blastfile + ".part_{}".format(i), evalue,
-                max_target_seqs, gapopen, gapextend, word_size, num_threads, outfmt,
-                reward, penalty
+                part, db_formated, f'{blastfile}.{i}', evalue, max_target_seqs, gapopen,
+                gapextend,
+                word_size, num_threads, outfmt, reward, penalty
                 )
-            print("running blast on chunk {}".format(i))
             subprocess.check_call(cmd, shell=True)
-        # merge blast results
-        with open(blastfile, 'w') as outfile:
-            for i in range(N):
-                fp = blastfile + ".part_{}".format(i)
-                print(fp)
-                with open(fp) as infile:
-                    for line in infile:
-                        outfile.write(line)
-        # remove temporary directory
-        print(blastfile)
-        shutil.rmtree(tmp_dir)
+            print(cmd)
+            # remove part file
+            # os.unlink(part)
+        # merge blast results and recalculate start, end positions and header
+        merge_blast_results(blastfile, matching_table, n_parts=len(query_parts))
+
     # remove temporary blast database
     os.unlink(db_formated + ".nhr")
     os.unlink(db_formated + ".nin")
     os.unlink(db_formated + ".nsq")
 
+def merge_blast_results(blastfile, matching_table, n_parts):
+    """
+    Merge blast tables and recalculate start, end positions based on
+    matching table
+    """
+    with open(blastfile, "w") as f:
+        matching_table_dict = {i[4]: i for i in matching_table}
+        print(matching_table_dict)
+        for i in range(n_parts):
+            with open(f'{blastfile}.{i}', "r") as f2:
+                for line in f2:
+                    line = line.strip().split("\t")
+                    # seqid (header) is in column 1
+                    seqid = line[0]
+                    line[0] = matching_table_dict[seqid][0]
+                    # increase coordinates by start position of chunk
+                    line[6] = str(int(line[6]) + matching_table_dict[seqid][2])
+                    line[7] = str(int(line[7]) + matching_table_dict[seqid][2])
+                    f.write("\t".join(line) + "\n")
+            # remove temporary blast file
+            # os.unlink(f'{blastfile}.{i}')
 
 def main():
     """
