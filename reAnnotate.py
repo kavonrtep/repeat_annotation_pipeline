@@ -384,7 +384,7 @@ def run_blastn(
     # if query is smaller than 1GB, run blast on single file
     size = os.path.getsize(query)
     print("query size: {} bytes".format(size))
-    max_size = 3e6
+    max_size = 1e8
     overlap = 100000
     if size < max_size:
         cmd = ("blastn -task rmblastn -query {0} -db {1} -out {2} -evalue {3} "
