@@ -18,7 +18,7 @@ clean_contigs = function(s) {
 
 ## annotate_rm_fasta.R input.fasta annot.csv output.fasta
 ## input 1 - input.fasta - contigs from clustering
-## input 2 - annot.csv of clusters, firts column is CL number, seciond is annotation
+## input 2 - CLUSTER_TABLE.csv
 ##
 ## output - clean conntigs with appended annotation
 

@@ -1,14 +1,14 @@
-<tool id="repeat_annotate" name="Library Based Assembly Annotation" version="0.1.3" python_template_version="3.5">
+<tool id="repeat_annotate" name="Library Based Assembly Annotation" version="0.1.6" python_template_version="3.5">
     <requirements>
-        <requirement type="package">repeatmasker</requirement>
+        <requirement type="package" version="4.1.2.p1">repeatmasker</requirement>
         <requirement type="package">bioconductor-rtracklayer</requirement>
     </requirements>
     <command detect_errors="exit_code"><![CDATA[
 
         #if $sensitivity.value == 'default':
-        RepeatMasker -dir \$(pwd) '$input' -pa 32 -lib '$repeat_library' -xsmall -nolow -no_is -e ncbi
+        RepeatMasker -dir \$(pwd) '$input' -pa 32 -lib '$repeat_library' -xsmall ${nolow} -no_is -e ncbi
         #else:
-        RepeatMasker -dir \$(pwd) '$input' -pa 32 -lib '$repeat_library' -xsmall -nolow -no_is -e ncbi $sensitivity
+        RepeatMasker -dir \$(pwd) '$input' -pa 32 -lib '$repeat_library' -xsmall ${nolow} -no_is -e ncbi $sensitivity
         #end if
         &&
         ls -l * >&2 &&
@@ -27,6 +27,7 @@
             <option value="-s">Slow search, more sensitive </option>
             <option value="-q">Quick search, less sensitive </option>
         </param>
+        <param argument="-nolow" type="boolean" truevalue="" falsevalue="-nolow" checked="false" label="Perform masking of low complexity and simple repeats" />
     </inputs>
     <outputs>
         <data name="output1" format="gff3"  label="Repeat Annotation (GFF3) on ${on_string}"/>

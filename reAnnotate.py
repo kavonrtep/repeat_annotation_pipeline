@@ -56,6 +56,10 @@ def split_fasta_to_chunks(fasta_file, chunk_size=100000000, overlap=100000):
 
         if size > min_chunk_size:
             number_of_chunks = int(size / chunk_size)
+            print("number_of_chunks", number_of_chunks)
+            print("size", size)
+            print("chunk_size", chunk_size)
+            print("-----------------------------------------")
             adjusted_chunk_size = int(size / number_of_chunks)
             for i in range(number_of_chunks):
                 start = i * adjusted_chunk_size
@@ -70,6 +74,7 @@ def split_fasta_to_chunks(fasta_file, chunk_size=100000000, overlap=100000):
     # read sequences from fasta files and split them to chunks according to matching table
     # open output and input files, use with statement to close files
     number_of_temp_files = len(matching_table)
+    print('number of temp files', number_of_temp_files)
     fasta_dict = read_single_fasta_to_dictionary(open(fasta_file, 'r'))
     with open(fasta_file_split, 'w') as fh_out:
         for header in fasta_dict:
@@ -78,26 +83,26 @@ def split_fasta_to_chunks(fasta_file, chunk_size=100000000, overlap=100000):
                 fh_out.write('>' + new_header + '\n')
                 fh_out.write(fasta_dict[header][start:end] + '\n')
     temp_files_fasta = make_temp_files(number_of_temp_files)
-    file_handles = [open(temp_file, 'w') for temp_file in temp_files_fasta]
-    # make dictionary seq_id_sorted as keys and values as file handles
     fasta_seq_size = read_fasta_sequence_size(fasta_file_split)
     seq_id_size_sorted = [i[0] for i in sorted(
         fasta_seq_size.items(), key=lambda x: int(x[1]), reverse=True
         )]
-    seq_id_file_handle_dict = dict(zip(seq_id_size_sorted, itertools.cycle(file_handles)))
-
+    seq_id_file_dict = dict(zip(seq_id_size_sorted, itertools.cycle(temp_files_fasta)))
     # write sequences to temporary files
     with open(fasta_file_split, 'r') as f:
+        first = True
         for line in f:
             if line[0] == '>':
+                # close previous file if it is not the first sequence
+                if not first:
+                    fout.close()
+                first = False
                 header = line.strip().split(' ')[0][1:]
-                seq_id_file_handle_dict[header].write(line)
+                fout = open(seq_id_file_dict[header],'a')
+                fout.write(line)
             else:
-                seq_id_file_handle_dict[header].write(line)
+                fout.write(line)
     os.remove(fasta_file_split)
-    # close file handles
-    for file_handle in file_handles:
-        file_handle.close()
     return temp_files_fasta, matching_table
 
 
@@ -384,8 +389,8 @@ def run_blastn(
     # if query is smaller than 1GB, run blast on single file
     size = os.path.getsize(query)
     print("query size: {} bytes".format(size))
-    max_size = 1e8
-    overlap = 100000
+    max_size = 1e6
+    overlap = 50000
     if size < max_size:
         cmd = ("blastn -task rmblastn -query {0} -db {1} -out {2} -evalue {3} "
                "-max_target_seqs {4} "
