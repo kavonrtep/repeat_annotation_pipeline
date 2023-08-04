@@ -70,6 +70,7 @@ if (FALSE){
   g2 <- import("test_data/RM_RE_CL.gff3")
   g2 <- import("test_data/RM_RE_v3.gff3")
   g2 <- import("test_data/RM_RE_v4.gff3")
+  g1 <- import("test_data/RM_RE_v4.gff3")
 
   attribute_name <- "Name"
 }
@@ -96,9 +97,16 @@ n2 <- cbind("No Annotation", sapply(annot_name[c2], "[", 1))
 n12 <- do.call(rbind, annot_name[c12])
 
 n12all <- matrix(character(), ncol = 2, nrow = length(g12_disjoin))
-n12all[c1,] <- n1
-n12all[c2,] <- n2
-n12all[c12,] <- n12
+
+if (any(c1)){
+  n12all[c1,] <- n1
+}
+if (any(c2)){
+  n12all[c2,] <- n2
+}
+if (any(c12)){
+  n12all[c12,] <- n12
+}
 
 traw <- wtable(n12all[,1], n12all[,2], weights = width(g12_disjoin))
 tbl_df <- as.data.frame((traw))
