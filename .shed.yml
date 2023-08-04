@@ -11,4 +11,3 @@ exclude:
   - test.out
   - test1.sh
   - test_RM.sh
-  -
