@@ -1,0 +1,14 @@
+categories:
+- Genome annotation
+description: tools for annotation of repetitive elements in geneome assemblies
+homepage_url: https://github.com/kavonrtep/repeat_annotation_pipeline
+name: repeat_annotation_pipeline3
+owner: petr-novak
+exclude:
+  - tmp
+  - test_data
+  - notes.txt
+  - test.out
+  - test1.sh
+  - test_RM.sh
+  -
