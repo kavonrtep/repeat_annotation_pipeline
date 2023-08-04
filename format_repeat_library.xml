@@ -2,8 +2,11 @@
     <requirements>
         <requirement type="package" version="2.60.0">bioconductor-biostrings</requirement>
     </requirements>
+    <required_files>
+        <include type="literal" path="annotate_contigs.R"/>
+    </required_files>
     <command detect_errors="exit_code"><![CDATA[
-        $__tool_directory__/annotate_contigs.R '$contigs' '$cluster_table' '$annotated_contigs'
+        Rscript $__tool_directory__/annotate_contigs.R '$contigs' '$cluster_table' '$annotated_contigs'
     ]]></command>
     <inputs>
         <param type="data" name="contigs" format="fasta" label="Contigs - Library of Repeats from TAREAN/RepeatExplorer pipeline" />
@@ -60,7 +63,7 @@ Only Cluster, Automatic_annotation/Final_annnotation are mandatory"
 
 Clusters with higher number than those in CLUSTER_TABLE are removed from Repeat library
 
-Contigs are provided in followinf format::
+Contigs are provided in following format::
 
 
      >CL25Contig1

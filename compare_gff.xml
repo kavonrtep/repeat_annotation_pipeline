@@ -2,8 +2,11 @@
     <requirements>
         <requirement type="package">bioconductor-rtracklayer</requirement>
     </requirements>
+    <required_files>
+        <include type="literal" path="compare_gff.R"/>
+    </required_files>
     <command detect_errors="exit_code"><![CDATA[
-        $__tool_directory__/compare_gff.R '$input1_gff' '$input2_gff' '$attribute_name'
+        Rscript '$__tool_directory__'/compare_gff.R '$input1_gff' '$input2_gff' '$attribute_name'
         &&
         cp annotation_overlap_long.csv '$out_long'
         &&

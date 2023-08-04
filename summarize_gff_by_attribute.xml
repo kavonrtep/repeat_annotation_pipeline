@@ -2,8 +2,11 @@
     <requirements>
         <requirement type="package">bioconductor-rtracklayer</requirement>
     </requirements>
+    <required_files>
+        <include type="literal" path="summarize_gff_by_attribute.R"/>
+    </required_files>
     <command detect_errors="exit_code"><![CDATA[
-        $__tool_directory__/summarize_gff_by_attribute.R '$input_gff' $attribute_name '$output_table'
+        Rscript  $__tool_directory__/summarize_gff_by_attribute.R '$input_gff' $attribute_name '$output_table'
     ]]></command>
     <inputs>
       <param type="data" name="input_gff" format="gff" label="Input GFF">
@@ -19,6 +22,6 @@
         <data name="output_table" format="tsv" />
     </outputs>
     <help><![CDATA[
-        TODO: Fill in help.
+        Calculate summary statistics on GFF3 attribute. Summary included total number of features and total lenght per attribute value.
     ]]></help>
 </tool>

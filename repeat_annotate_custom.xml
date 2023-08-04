@@ -3,6 +3,9 @@
         <requirement type="package" version="4.1.2.p1">repeatmasker</requirement>
         <requirement type="package">bioconductor-rtracklayer</requirement>
     </requirements>
+    <required_files>
+        <include type="literal" path="clean_rm_output.R"/>
+    </required_files>
     <command detect_errors="exit_code"><![CDATA[
 
         #if $sensitivity.value == 'default':
