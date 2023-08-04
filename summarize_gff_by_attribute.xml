@@ -16,7 +16,7 @@
           </valid>
         </sanitizer>
       </param>
-        <param type="text" name="attribute_name" label="Name of attribute to summarize"/>
+        <param type="text" name="attribute_name" label="Name of attribute to summarize" optional="false" default="Name"/>
     </inputs>
     <outputs>
         <data name="output_table" format="tsv" />

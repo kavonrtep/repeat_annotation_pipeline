@@ -1,4 +1,5 @@
-<tool id="compare_gff" name="Compare overlap of two GFF3" version="0.1.0" python_template_version="3.5">
+<tool id="compare_gff" name="Compare overlap of two GFF3" version="0.1.0"
+      python_template_version="3.5">
     <requirements>
         <requirement type="package">bioconductor-rtracklayer</requirement>
     </requirements>
@@ -14,25 +15,26 @@
 
     ]]></command>
     <inputs>
-      <param type="data" name="input1_gff" format="gff" label="First GFF">
-        <sanitizer invalid_char="">
-          <valid initial="string.ascii_letters,string.digits">
-            <add value="_" />
-          </valid>
-        </sanitizer>
-      </param>
-      <param type="data" name="input2_gff" format="gff" label="Second GFF">
-        <sanitizer invalid_char="">
-          <valid initial="string.ascii_letters,string.digits">
-            <add value="_" />
-          </valid>
-        </sanitizer>
-      </param>
-        <param type="text" name="attribute_name" label="Name of attribute to summarize"/>
+        <param type="data" name="input1_gff" format="gff" label="First GFF">
+            <sanitizer invalid_char="">
+                <valid initial="string.ascii_letters,string.digits">
+                    <add value="_"/>
+                </valid>
+            </sanitizer>
+        </param>
+        <param type="data" name="input2_gff" format="gff" label="Second GFF">
+            <sanitizer invalid_char="">
+                <valid initial="string.ascii_letters,string.digits">
+                    <add value="_"/>
+                </valid>
+            </sanitizer>
+        </param>
+        <param type="text" name="attribute_name" label="Name of attribute to summarize"
+               optional="false" default="Name"/>
     </inputs>
     <outputs>
         <data name="out_long" format="tabular" label="Overlap of annotations
-        ${input1_gff.hid} and ${input1_gff.hid} (as matrix)"  />
+        ${input1_gff.hid} and ${input1_gff.hid} (as matrix)"/>
         <data name="out_wide" format="tabular" label="Overlap of annotations
         ${input1_gff.hid} and ${input1_gff.hid} (as table)"/>
     </outputs>
