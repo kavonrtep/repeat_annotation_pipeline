@@ -1,4 +1,4 @@
-<tool id="repeat_annotate" name="Library Based Assembly Annotation" version="0.1.6" python_template_version="3.5">
+<tool id="repeat_annotate" name="Library Based Assembly Annotation" version="0.1.7" python_template_version="3.5">
     <requirements>
         <requirement type="package" version="4.1.2.p1">repeatmasker</requirement>
         <requirement type="package">bioconductor-rtracklayer</requirement>
@@ -30,7 +30,7 @@
             <option value="-s">Slow search, more sensitive </option>
             <option value="-q">Quick search, less sensitive </option>
         </param>
-        <param argument="-nolow" type="boolean" truevalue="" falsevalue="-nolow" checked="false" label="Perform masking of low complexity and simple repeats" />
+        <param argument="-nolow" type="boolean" truevalue="" falsevalue="-nolow" checked="true" label="Perform masking of low complexity and simple repeats" />
     </inputs>
     <outputs>
         <data name="output1" format="gff3"  label="Repeat Annotation (GFF3) on ${on_string}"/>
